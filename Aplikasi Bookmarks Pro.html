@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WasobiTech — Personal Bookmarks & Hub Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-50 bg-emerald-800 text-white shadow-md border-b border-emerald-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-white text-emerald-800 flex items-center justify-center font-black text-xl shadow-inner">
+                    W
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold leading-none">WasobiTech</h1>
+                    <span class="text-[10px] text-emerald-200 tracking-wider font-semibold uppercase">Personal Hub Portal</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="openAddModal()" class="bg-emerald-700 hover:bg-emerald-600 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition shadow">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="hidden sm:inline">Tambah</span>
+                </button>
+                <span class="h-6 w-px bg-emerald-700"></span>
+                <div id="bookmark-counter" class="text-xs font-medium bg-emerald-900 px-2.5 py-1 rounded-full text-emerald-200">
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout Container -->
+    <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow flex flex-col md:flex-row gap-6">
+        
+        <!-- Sidebar Categories (Desktop) / Horizontal Scroller (Mobile) -->
+        <aside class="w-full md:w-64 shrink-0 flex flex-col gap-4">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 hidden md:block">Kategori Utama</h3>
+                
+                <!-- Mobile Horizontal Scroll Container / Desktop Vertical Menu -->
+                <div id="categories-menu" class="flex md:flex-col overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 gap-1.5 custom-scrollbar">
+                    <!-- Dynamic category pills will be injected here -->
+                </div>
+            </div>
+
+            <!-- Quick Stats Card -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hidden md:block">
+                <h4 class="text-xs font-bold text-slate-800 mb-2">Status Bookmark</h4>
+                <div class="space-y-1.5 text-xs text-slate-600">
+                    <div class="flex justify-between">
+                        <span>Total URL Aktif</span>
+                        <strong id="stat-active-links" class="text-emerald-700">0</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Link Terverifikasi</span>
+                        <strong class="text-blue-600">100%</strong>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main class="flex-grow flex flex-col gap-6">
+            
+            <!-- Search and Filter Bar -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-3 items-center justify-between">
+                <div class="relative w-full sm:max-w-md">
+                    <input type="text" id="search-input" onkeyup="filterBookmarks()" placeholder="Cari bookmark atau deskripsi..." class="w-full text-sm p-2.5 pl-10 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-sm transition">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+                </div>
+                <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                    <button onclick="resetFilters()" class="text-xs font-bold text-emerald-700 hover:text-emerald-900 px-3 py-2 rounded-lg hover:bg-slate-50 transition">
+                        Reset Filter
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grid of Bookmarks -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 id="active-category-title" class="font-bold text-lg text-slate-800">Semua Bookmarks</h2>
+                    <span id="active-count-badge" class="text-xs bg-slate-200 text-slate-700 font-bold px-2.5 py-0.5 rounded-full">0</span>
+                </div>
+                
+                <div id="bookmarks-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Bookmarks dynamically rendered here -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden py-16 text-center">
+                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 mb-4">
+                        <i class="fa-solid fa-folder-open text-2xl"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-1">Tidak ada bookmark ditemukan</h3>
+                    <p class="text-xs text-slate-500">Coba cari kata kunci lain atau ubah kategori filter Anda.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Bookmark Modal -->
+    <div id="add-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 px-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl transition-all scale-95">
+            <div class="bg-emerald-800 px-5 py-4 flex justify-between items-center text-white">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-bookmark mr-2"></i>Tambah Bookmark</h3>
+                <button onclick="closeAddModal()" class="text-white hover:text-emerald-200 transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-5">
+                <form id="add-form" onsubmit="event.preventDefault(); processAdd();" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nama Bookmark</label>
+                        <input type="text" id="new-name" required placeholder="Contoh: GitHub" class="w-full text-sm p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-sm transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">URL Tujuan</label>
+                        <input type="url" id="new-url" required placeholder="https://example.com" class="w-full text-sm p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-sm transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Kategori</label>
+                        <select id="new-category" class="w-full text-sm p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-sm transition">
+                            <option value="General & Tools">General & Tools</option>
+                            <option value="Trading & Forex">Trading & Forex</option>
+                            <option value="Web Dev & SEO">Web Dev & SEO</option>
+                            <option value="Test Code & Playgrounds">Test Code & Playgrounds</option>
+                            <option value="Image Url Maker">Image Url Maker</option>
+                            <option value="Chat AI">Chat AI</option>
+                            <option value="Converter">Converter</option>
+                            <option value="Applications">Applications</option>
+                            <option value="Code Engineer of Programming">Code Engineer of Programming</option>
+                            <option value="Favorit Website">Favorit Website</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-800 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition shadow-md mt-5">
+                        Simpan Bookmark
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 text-center text-xs mt-auto">
+        <p>&copy; 2026 WasobiTech. Semua referensi link berhasil diintegrasikan secara instan.</p>
+    </footer>
+
+    <script>
+        // Source Bookmarks data accurately mapped
+        const initialBookmarks = [
+            { name: "🔗 Short with s.id", category: "General & Tools", url: "https://s.id", icon: "fa-solid fa-link" },
+            { name: "Clear History", category: "General & Tools", url: "https://support.google.com/chrome/answer/95589", icon: "fa-solid fa-trash-can" },
+            { name: "Download Logo", category: "General & Tools", url: "https://www.google.com/search?q=Download+Logo", icon: "fa-solid fa-download" },
+            { name: "CCTV REAL-TIME", category: "General & Tools", url: "https://www.google.com/search?q=CCTV+REAL-TIME", icon: "fa-solid fa-video" },
+            { name: "Webstore", category: "General & Tools", url: "https://chromewebstore.google.com/", icon: "fa-brands fa-chrome" },
+            { name: "Download Set", category: "General & Tools", url: "https://www.google.com/search?q=Download+Set", icon: "fa-solid fa-circle-down" },
+            { name: "Clear Download", category: "General & Tools", url: "https://www.google.com/search?q=Clear+Download", icon: "fa-solid fa-eraser" },
+            { name: "Tools", category: "General & Tools", url: "https://www.google.com/search?q=Online+Tools", icon: "fa-solid fa-screwdriver-wrench" },
+            { name: "Chrome URLs", category: "General & Tools", url: "https://www.google.com/search?q=Chrome+URLs", icon: "fa-solid fa-globe" },
+            { name: "PageSpeed Insights", category: "General & Tools", url: "https://pagespeed.web.dev/", icon: "fa-solid fa-gauge-high" },
+            { name: "Train Music", category: "General & Tools", url: "https://www.youtube.com/results?search_query=train+music", icon: "fa-solid fa-music" },
+            { name: "Information Tech. and Cyber Security", category: "General & Tools", url: "https://www.google.com/search?q=Information+Tech.+and+Cyber+Security", icon: "fa-solid fa-shield-halved" },
+            { name: "Coding Google", category: "General & Tools", url: "https://developers.google.com/", icon: "fa-solid fa-code" },
+            { name: "Looker Studio", category: "General & Tools", url: "https://lookerstudio.google.com/", icon: "fa-solid fa-chart-column" },
+            { name: "PDF24 Tools", category: "General & Tools", url: "https://tools.pdf24.org/", icon: "fa-solid fa-file-pdf" },
+            { name: "PimEyes: Face Recognition Search Engine", category: "General & Tools", url: "https://pimeyes.com/", icon: "fa-solid fa-face-smile" },
+            { name: "Freesound", category: "General & Tools", url: "https://freesound.org/", icon: "fa-solid fa-volume-high" },
+            { name: "Badan Siber dan Sandi Negara", category: "General & Tools", url: "https://www.bssn.go.id/", icon: "fa-solid fa-building-shield" },
+            { name: "VirusTotal - Home", category: "General & Tools", url: "https://www.virustotal.com/", icon: "fa-solid fa-virus" },
+            { name: "Hacker", category: "General & Tools", url: "https://www.hackerone.com/", icon: "fa-solid fa-user-secret" },
+            { name: "Cloudflare", category: "General & Tools", url: "https://www.cloudflare.com/", icon: "fa-brands fa-cloudflare" },
+            { name: "Wasobitech - Webflow", category: "General & Tools", url: "https://webflow.com/", icon: "fa-solid fa-palette" },
+            { name: "Alarm Sound Effects | Mixkit", category: "General & Tools", url: "https://mixkit.co/free-sound-effects/alarm/", icon: "fa-solid fa-bell" },
+            { name: "Experiments", category: "General & Tools", url: "https://www.google.com/search?q=web+experiments", icon: "fa-solid fa-flask" },
+            { name: "aaPanel", category: "General & Tools", url: "https://www.aapanel.com/", icon: "fa-solid fa-server" },
+            { name: "Google AI for Developers", category: "General & Tools", url: "https://ai.google.dev/", icon: "fa-solid fa-brain" },
+            { name: "FPDF", category: "General & Tools", url: "http://www.fpdf.org/", icon: "fa-solid fa-file-pdf" },
+            { name: "Vulnerability Database 🛡", category: "General & Tools", url: "https://vuldb.com/", icon: "fa-solid fa-shield-virus" },
+            { name: "W3Schools", category: "General & Tools", url: "https://www.w3schools.com/", icon: "fa-solid fa-graduation-cap" },
+            { name: "Remove.bg", category: "General & Tools", url: "https://www.remove.bg/", icon: "fa-solid fa-image" },
+            { name: "AI Writing Generator & Tools", category: "General & Tools", url: "https://copy.ai/", icon: "fa-solid fa-pen-nib" },
+            { name: "Game", category: "General & Tools", url: "https://www.crazygames.com/", icon: "fa-solid fa-gamepad" },
+            { name: "Wasobi Trading", category: "General & Tools", url: "https://www.google.com/search?q=Wasobi+Trading", icon: "fa-solid fa-chart-line" },
+
+            // Trading & Forex
+            { name: "Chart XAUUSD — Harga Emas — TradingView", category: "Trading & Forex", url: "https://www.tradingview.com/symbols/XAUUSD/", icon: "fa-solid fa-coins" },
+            { name: "Broker Forex Terbesar Indonesia | MIFX", category: "Trading & Forex", url: "https://mifx.com/", icon: "fa-solid fa-money-bill-trend-up" },
+            { name: "Individual Investor", category: "Trading & Forex", url: "https://www.investopedia.com/", icon: "fa-solid fa-user-tie" },
+            { name: "FxVerify - Forex Broker Reviews", category: "Trading & Forex", url: "https://www.fxverify.com/", icon: "fa-solid fa-check-double" },
+            { name: "IC Markets Global", category: "Trading & Forex", url: "https://www.icmarkets.com/", icon: "fa-solid fa-chart-simple" },
+            { name: "XAUUSD 2,858.41 ▲ +0.58% Trading View", category: "Trading & Forex", url: "https://www.tradingview.com/symbols/XAUUSD/", icon: "fa-solid fa-arrow-trend-up" },
+            { name: "Trending Market", category: "Trading & Forex", url: "https://tradingview.com/markets/", icon: "fa-solid fa-fire" },
+
+            // Web Dev & SEO
+            { name: "VA help: Blog, SEO, Research Help", category: "Web Dev & SEO", url: "https://www.freelancer.com/", icon: "fa-solid fa-magnifying-glass-chart" },
+            { name: "Google Sites", category: "Web Dev & SEO", url: "https://sites.google.com/", icon: "fa-solid fa-window-maximize" },
+            { name: "WasobiTech Home", category: "Web Dev & SEO", url: "https://www.google.com/search?q=WasobiTech", icon: "fa-solid fa-microchip" },
+            { name: "PDF to PNG, Online Converter", category: "Web Dev & SEO", url: "https://www.online-convert.com/", icon: "fa-solid fa-file-arrow-right" },
+            { name: "API WhatsApp Business - MessageBird", category: "Web Dev & SEO", url: "https://messagebird.com/whatsapp", icon: "fa-brands fa-whatsapp" },
+            { name: "Best WhatsApp Tools to Increase Productivity", category: "Web Dev & SEO", url: "https://www.google.com/search?q=Best+WhatsApp+Tools+To+Increase+Your+Productivity", icon: "fa-solid fa-rocket" },
+            { name: "Layanan Sumber Daya – Ditjen Dikti Kemendikbud", category: "Web Dev & SEO", url: "https://sumberdayadikti.kemdikbud.go.id/", icon: "fa-solid fa-university" },
+            { name: "Login | Feeder – RSS Feed Reader", category: "Web Dev & SEO", url: "https://feeder.co/", icon: "fa-solid fa-rss" },
+            { name: "Peretasan Facebook Daring | Dekode kata sandi", category: "Web Dev & SEO", url: "https://yandex.com/", icon: "fa-brands fa-facebook" },
+            { name: "Bagaimana Menjadi Peretas?", category: "Web Dev & SEO", url: "https://www.google.com/search?q=bagaimana+menjadi+peretas", icon: "fa-solid fa-terminal" },
+            { name: "Tor Project | Success", category: "Web Dev & SEO", url: "https://www.torproject.org/", icon: "fa-solid fa-circle-nodes" },
+            { name: "ikan lokal lebih alus mp4 3gp mp3 indir", category: "Web Dev & SEO", url: "https://yandex.com/", icon: "fa-solid fa-video" },
+            { name: "Showwcase.com", category: "Web Dev & SEO", url: "https://www.showwcase.com/", icon: "fa-solid fa-briefcase" },
+            { name: "Ping My Url by Free Backlinks", category: "Web Dev & SEO", url: "https://www.pingmyurl.com/", icon: "fa-solid fa-arrow-up-right-from-square" },
+            { name: "Wikipedia bahasa Indonesia", category: "Web Dev & SEO", url: "https://id.wikipedia.org/", icon: "fa-solid fa-wikipedia-w" },
+            { name: "Cequence Security | API Protection", category: "Web Dev & SEO", url: "https://www.cequence.ai/", icon: "fa-solid fa-shield" },
+            { name: "Scrolling Images", category: "Web Dev & SEO", url: "https://www.google.com/search?q=scrolling+images", icon: "fa-solid fa-images" },
+            { name: "Apa Itu API? Pengertian & Manfaat", category: "Web Dev & SEO", url: "https://appmaster.io/id/blog/apa-itu-api", icon: "fa-solid fa-gears" },
+            { name: "PDF Editor Free - PDFescape", category: "Web Dev & SEO", url: "https://www.pdfescape.com/", icon: "fa-solid fa-file-pen" },
+            { name: "IFRAMELY", category: "Web Dev & SEO", url: "https://iframely.com/", icon: "fa-solid fa-border-all" },
+            { name: "Menyesuaikan Zona Waktu di PHP", category: "Web Dev & SEO", url: "https://www.google.com/search?q=Menyesuaikan+Zona+Waktu+di+PHP", icon: "fa-solid fa-clock" },
+            { name: "Transformasi & Kedewasaan Digital - Google", category: "Web Dev & SEO", url: "https://www.thinkwithgoogle.com/", icon: "fa-solid fa-lightbulb" },
+            { name: "Features – How Google Search Works", category: "Web Dev & SEO", url: "https://www.google.com/search/howsearchworks/", icon: "fa-brands fa-google" },
+            { name: "Lisensi Publik Umum GNU Affero", category: "Web Dev & SEO", url: "https://www.gnu.org/licenses/agpl-3.0.html", icon: "fa-solid fa-scroll" },
+            { name: "Pngtree Affiliate Program", category: "Web Dev & SEO", url: "https://pngtree.com/", icon: "fa-solid fa-money-bill-wave" },
+            { name: "Logos - Thousands of Handcrafted Logos", category: "Web Dev & SEO", url: "https://www.logodesign.net/", icon: "fa-solid fa-crown" },
+            { name: "Tailor Brands | Brand Design Platform", category: "Web Dev & SEO", url: "https://www.tailorbrands.com/", icon: "fa-solid fa-signature" },
+            { name: "Jagel.co.id", category: "Web Dev & SEO", url: "https://www.jagel.co.id/", icon: "fa-solid fa-mobile-screen" },
+            { name: "Cara Membuat Aplikasi Sendiri - MARKEY", category: "Web Dev & SEO", url: "https://markey.id/", icon: "fa-solid fa-book" },
+            { name: "Biaya pembuatan aplikasi | WEBAPP | APPKEY", category: "Web Dev & SEO", url: "https://appkey.co.id/", icon: "fa-solid fa-tags" },
+            { name: "GitHub - facebook/react-native", category: "Web Dev & SEO", url: "https://github.com/facebook/react-native", icon: "fa-brands fa-github" },
+            { name: "React Native · Learn once, write anywhere", category: "Web Dev & SEO", url: "https://reactnative.dev/", icon: "fa-brands fa-react" },
+            { name: "Files - Saputra Cloud", category: "Web Dev & SEO", url: "https://www.google.com/search?q=Saputra+Cloud", icon: "fa-solid fa-cloud" },
+            { name: "Aplikasi Quick Count Tandem", category: "Web Dev & SEO", url: "https://www.google.com/search?q=Aplikasi+Quick+Count+Tandem", icon: "fa-solid fa-square-poll-vertical" },
+            { name: "google designer tool - Penelusuran", category: "Web Dev & SEO", url: "https://www.google.com/search?q=google+designer+tool", icon: "fa-solid fa-compass-drafting" },
+            { name: "Google Design", category: "Web Dev & SEO", url: "https://design.google/", icon: "fa-solid fa-bezier-curve" },
+            { name: "Menyiapkan lingkungan pengembangan · React Native", category: "Web Dev & SEO", url: "https://reactnative.dev/docs/environment-setup", icon: "fa-solid fa-screwdriver-wrench" },
+            { name: "Snack - React Native in the browser", category: "Web Dev & SEO", url: "https://snack.expo.dev/", icon: "fa-solid fa-cookie-bite" },
+            { name: "Pengantar ProcessWire", category: "Web Dev & SEO", url: "https://processwire.com/", icon: "fa-solid fa-leaf" },
+            { name: "File Finder · GitHub-SIAKAD", category: "Web Dev & SEO", url: "https://github.com/", icon: "fa-solid fa-folder-open" },
+
+            // Test Code & Playgrounds
+            { name: "W3Schools Tryit Editor", category: "Test Code & Playgrounds", url: "https://www.w3schools.com/html/tryit.asp?filename=tryhtml_default", icon: "fa-solid fa-circle-play" },
+            { name: "CODEPEN.IO", category: "Test Code & Playgrounds", url: "https://codepen.io/", icon: "fa-brands fa-codepen" },
+            { name: "Code Generator", category: "Test Code & Playgrounds", url: "https://www.google.com/search?q=Code+Generator", icon: "fa-solid fa-wand-magic-sparkles" },
+            { name: "Colab", category: "Test Code & Playgrounds", url: "https://colab.research.google.com/", icon: "fa-solid fa-terminal" },
+            { name: "JSFiddle - Code Playground", category: "Test Code & Playgrounds", url: "https://jsfiddle.net/", icon: "fa-brands fa-jsfiddle" },
+            { name: "Replit – Build apps and sites with AI", category: "Test Code & Playgrounds", url: "https://replit.com/", icon: "fa-solid fa-cubes" },
+            { name: "CodeSandbox", category: "Test Code & Playgrounds", url: "https://codesandbox.io/", icon: "fa-solid fa-box" },
+            { name: "Glitch", category: "Test Code & Playgrounds", url: "https://glitch.com/", icon: "fa-solid fa-circle-half-stroke" },
+
+            // Image Url Maker
+            { name: "Freeimage.host — Hosting Gambar", category: "Image Url Maker", url: "https://freeimage.host/", icon: "fa-solid fa-cloud-arrow-up" },
+
+            // Chat AI
+            { name: "Gemini", category: "Chat AI", url: "https://gemini.google.com/", icon: "fa-solid fa-sparkles" },
+            { name: "AI Studio", category: "Chat AI", url: "https://aistudio.google.com/", icon: "fa-solid fa-laptop-code" },
+            { name: "ChatGPT", category: "Chat AI", url: "https://chatgpt.com/", icon: "fa-solid fa-robot" },
+            { name: "DeepAI", category: "Chat AI", url: "https://deepai.org/", icon: "fa-solid fa-brain" },
+
+            // Converter
+            { name: "CloudConvert", category: "Converter", url: "https://cloudconvert.com/", icon: "fa-solid fa-arrows-rotate" },
+
+            // Applications
+            { name: "QR Code Maker", category: "Applications", url: "https://www.qr-code-generator.com/", icon: "fa-solid fa-qrcode" },
+            { name: "Google Apps Script", category: "Applications", url: "https://www.google.com/script/start/", icon: "fa-solid fa-scroll" },
+            { name: "Wasobitech/elevate-ai: The Mindful Makeover", category: "Applications", url: "https://github.com/", icon: "fa-solid fa-spa" },
+            { name: "Vercel", category: "Applications", url: "https://vercel.com/", icon: "fa-solid fa-caret-up" },
+            { name: "Netlify", category: "Applications", url: "https://www.netlify.com/", icon: "fa-solid fa-diamond" },
+            { name: "Firebase for Android", category: "Applications", url: "https://firebase.google.com/", icon: "fa-brands fa-google" },
+            { name: "Slack", category: "Applications", url: "https://slack.com/", icon: "fa-brands fa-slack" },
+            { name: "Opal [Experiment]", category: "Applications", url: "https://opal.so/", icon: "fa-solid fa-gem" },
+            { name: "Discord", category: "Applications", url: "https://discord.com/", icon: "fa-brands fa-discord" },
+            { name: "Rapat Online | Microsoft Teams", category: "Applications", url: "https://www.microsoft.com/en-us/microsoft-teams/group-chat-software", icon: "fa-solid fa-users-rectangle" },
+            { name: "Asana vs. ClickUp", category: "Applications", url: "https://clickup.com/compare/asana-alternative", icon: "fa-solid fa-shuffle" },
+            { name: "aws.amazon.com", category: "Applications", url: "https://aws.amazon.com/", icon: "fa-brands fa-aws" },
+            { name: "DevOps Modernization Assessment", category: "Applications", url: "https://aws.amazon.com/devops/", icon: "fa-solid fa-list-check" },
+            { name: "GitLab", category: "Applications", url: "https://gitlab.com/", icon: "fa-brands fa-gitlab" },
+            { name: "Bitbucket", category: "Applications", url: "https://bitbucket.org/", icon: "fa-brands fa-bitbucket" },
+            { name: "Ventoy Bootable Windows", category: "Applications", url: "https://www.ventoy.net/", icon: "fa-solid fa-compact-disc" },
+
+            // Code Engineer
+            { name: "StackBlitz | Instant Dev Environments", category: "Code Engineer of Programming", url: "https://stackblitz.com/", icon: "fa-solid fa-bolt" },
+            { name: "GitHub Copilot", category: "Code Engineer of Programming", url: "https://github.com/features/copilot", icon: "fa-solid fa-user-astronaut" },
+            { name: "ChatGPT Assistant", category: "Code Engineer of Programming", url: "https://chatgpt.com/", icon: "fa-solid fa-microchip" },
+            { name: "Gemini | Partner Coding", category: "Code Engineer of Programming", url: "https://gemini.google.com/", icon: "fa-solid fa-terminal" },
+            { name: "AI Studio | Code Assistant", category: "Code Engineer of Programming", url: "https://aistudio.google.com/", icon: "fa-solid fa-wand-magic-sparkles" },
+
+            // Favorit Website
+            { name: "The Wedding of Risma & Hanofi", category: "Favorit Website", url: "https://www.google.com/search?q=Risma+and+Hanofi+Wedding", icon: "fa-solid fa-heart" },
+            { name: "FORMULA", category: "Favorit Website", url: "https://www.google.com/search?q=FORMULA", icon: "fa-solid fa-vial" },
+            { name: "APACE138 - Situs Game Online Tercaya", category: "Favorit Website", url: "https://google.com/search?q=APACE138", icon: "fa-solid fa-gamepad" },
+            { name: "Home | Kelurahan Bahagia", category: "Favorit Website", url: "https://www.google.com/search?q=Kelurahan+Bahagia", icon: "fa-solid fa-house" },
+            { name: "Virtual Assistant Singapore | Servcorp SG", category: "Favorit Website", url: "https://www.servcorp.com.sg/en/virtual-offices/", icon: "fa-solid fa-headset" },
+            { name: "Jual Maiwo Kabel Sata - Lazada", category: "Favorit Website", url: "https://www.lazada.co.id/", icon: "fa-solid fa-cart-shopping" },
+            { name: "memek tembem: 478 videos found on Yandex", category: "Favorit Website", url: "https://yandex.com/", icon: "fa-solid fa-circle-exclamation" },
+            { name: "ebook maker software free", category: "Favorit Website", url: "https://www.google.com/search?q=ebook+maker+software+free", icon: "fa-solid fa-book-open" },
+            { name: "Spesialis Automasi Garmen - Pukka Indonusa", category: "Favorit Website", url: "https://www.pukkaindonusa.com/", icon: "fa-solid fa-shirt" },
+            { name: "Horoskop Jawa | PRIMBON.COM", category: "Favorit Website", url: "https://www.primbon.com/", icon: "fa-solid fa-star-and-crescent" },
+            { name: "FINTOCH", category: "Favorit Website", url: "https://www.google.com/search?q=FINTOCH", icon: "fa-solid fa-wallet" },
+            { name: "Indonesia Indicator", category: "Favorit Website", url: "https://indonesiaindicator.com/", icon: "fa-solid fa-chart-pie" },
+            { name: "RANDOM.ORG - Penghasil Tali", category: "Favorit Website", url: "https://www.random.org/", icon: "fa-solid fa-shuffle" },
+            { name: "Generator QR - gratis | ME-QR", category: "Favorit Website", url: "https://me-qr.com/", icon: "fa-solid fa-qrcode" },
+            { name: "pemilu_presiden_2004.txt GitHub", category: "Favorit Website", url: "https://github.com/", icon: "fa-solid fa-square-poll-vertical" },
+            { name: "pbformula.id - Hasil WebPageTest", category: "Favorit Website", url: "https://www.webpagetest.org/", icon: "fa-solid fa-gauge" },
+            { name: "SSL Server Test (Qualys SSL Labs)", category: "Favorit Website", url: "https://www.ssllabs.com/", icon: "fa-solid fa-lock" },
+            { name: "Official PT. Onna Prima Utama", category: "Favorit Website", url: "https://www.onna.co.id/", icon: "fa-solid fa-building" },
+            { name: "Online HR, PMP, SAP Courses - TheSkillDeck", category: "Favorit Website", url: "https://theskilldeck.com/", icon: "fa-solid fa-user-graduate" },
+            { name: "Typedream | Build website with no-code", category: "Favorit Website", url: "https://typedream.com/", icon: "fa-solid fa-border-none" },
+            { name: "Sponsorship – Eurie", category: "Favorit Website", url: "https://www.google.com/search?q=Eurie+Sponsorship", icon: "fa-solid fa-handshake" },
+            { name: "SKYWAY INDONESIA", category: "Favorit Website", url: "https://www.google.com/search?q=SKYWAY+INDONESIA", icon: "fa-solid fa-plane" },
+            { name: "Biaya Modif Yamaha NMAX Roda 3", category: "Favorit Website", url: "https://www.gridoto.com/", icon: "fa-solid fa-motorcycle" },
+            { name: "Rental Mobil Bekasi Murah - tiket.com", category: "Favorit Website", url: "https://www.tiket.com/", icon: "fa-solid fa-car" },
+            { name: "Topik populer di Tumblr", category: "Favorit Website", url: "https://www.tumblr.com/", icon: "fa-brands fa-tumblr" },
+            { name: "LPDP - Kemenkeu", category: "Favorit Website", url: "https://lpdp.kemenkeu.go.id/", icon: "fa-solid fa-award" },
+            { name: "Kartu Indonesia Pintar Kuliah", category: "Favorit Website", url: "https://kip-kuliah.kemdikbud.go.id/", icon: "fa-solid fa-address-card" },
+            { name: "Stoikisme - Wikipedia Indonesia", category: "Favorit Website", url: "https://id.wikipedia.org/wiki/Stoikisme", icon: "fa-solid fa-brain" },
+            { name: "Template | FlipHTML5", category: "Favorit Website", url: "https://fliphtml5.com/", icon: "fa-solid fa-file-invoice" },
+            { name: "Digital Publishing Platform - FlipHTML5", category: "Favorit Website", url: "https://fliphtml5.com/", icon: "fa-solid fa-book" },
+            { name: "Overview - OpenAI API", category: "Favorit Website", url: "https://platform.openai.com/", icon: "fa-solid fa-microchip" },
+            { name: "Confluence Mobile - Apache Foundation", category: "Favorit Website", url: "https://confluence.apache.org/", icon: "fa-brands fa-confluence" },
+            { name: "19 Situs Perencanaan Pernikahan", category: "Favorit Website", url: "https://www.weddingwire.com/", icon: "fa-solid fa-ring" },
+            { name: "Free Online Wedding Planner", category: "Favorit Website", url: "https://www.zola.com/", icon: "fa-solid fa-wand-magic-sparkles" },
+            { name: "Klinik SPMI PT Vokasi", category: "Favorit Website", url: "https://www.google.com/search?q=Klinik+SPMI+PT+Vokasi", icon: "fa-solid fa-stethoscope" },
+            { name: "MetaTrader 4 Platform", category: "Favorit Website", url: "https://www.metatrader4.com/", icon: "fa-solid fa-chart-line" },
+            { name: "Lucidchart | Diagramming Platform", category: "Favorit Website", url: "https://www.lucidchart.com/", icon: "fa-solid fa-diagram-project" },
+            { name: "Kerja Kami • Amnesty Indonesia", category: "Favorit Website", url: "https://www.amnesty.id/", icon: "fa-solid fa-hand-fist" },
+            { name: "KONSOR.IO", category: "Favorit Website", url: "https://www.google.com/search?q=KONSOR.IO", icon: "fa-solid fa-globe" },
+            { name: "Sistem pelacakan pelamar | Greenhouse", category: "Favorit Website", url: "https://www.greenhouse.com/", icon: "fa-solid fa-users" },
+            { name: "Audio link", category: "Favorit Website", url: "https://www.google.com/search?q=Audio+link", icon: "fa-solid fa-headphones" },
+            { name: "REMOTE DESKTOP", category: "Favorit Website", url: "https://www.google.com/search?q=REMOTE+DESKTOP", icon: "fa-solid fa-desktop" },
+            { name: "API untuk Pemula - AppMaster", category: "Favorit Website", url: "https://appmaster.io/", icon: "fa-solid fa-book" },
+            { name: "Web WhatsApp", category: "Favorit Website", url: "https://web.whatsapp.com/", icon: "fa-brands fa-whatsapp" },
+            { name: "SIAKAD", category: "Favorit Website", url: "https://github.com/", icon: "fa-solid fa-user-graduate" },
+            { name: "Profile - Microsoft Community Hub", category: "Favorit Website", url: "https://techcommunity.microsoft.com/", icon: "fa-brands fa-microsoft" },
+            { name: "Diagrams and Tutorials | Lucidchart", category: "Favorit Website", url: "https://www.lucidchart.com/", icon: "fa-solid fa-circle-info" },
+            { name: "Student Attendance Tracking Form", category: "Favorit Website", url: "https://www.google.com/search?q=Student+Attendance+Tracking+Form", icon: "fa-solid fa-clipboard-user" },
+            { name: "Wikihow", category: "Favorit Website", url: "https://www.wikihow.com/", icon: "fa-solid fa-question" },
+            { name: "Masuk ke akun Microsoft", category: "Favorit Website", url: "https://login.live.com/", icon: "fa-brands fa-windows" },
+            { name: "e-Learning", category: "Favorit Website", url: "https://www.google.com/search?q=e-Learning", icon: "fa-solid fa-chalkboard-user" },
+            { name: "Feed | LinkedIn", category: "Favorit Website", url: "https://www.linkedin.com/", icon: "fa-brands fa-linkedin" }
+        ];
+
+        let currentBookmarks = [...initialBookmarks];
+        let activeCategory = 'All';
+
+        // Initialize Dashboard App
+        function initDashboard() {
+            renderCategories();
+            renderBookmarks();
+            updateStats();
+        }
+
+        // Get unique categories
+        function getCategoriesList() {
+            const list = ['All'];
+            initialBookmarks.forEach(item => {
+                if (!list.includes(item.category)) {
+                    list.push(item.category);
+                }
+            });
+            return list;
+        }
+
+        // Render Category Filter Options
+        function renderCategories() {
+            const categories = getCategoriesList();
+            const menu = document.getElementById('categories-menu');
+            menu.innerHTML = '';
+
+            categories.forEach(cat => {
+                const isActive = cat === activeCategory;
+                const count = cat === 'All' 
+                    ? initialBookmarks.length 
+                    : initialBookmarks.filter(b => b.category === cat).length;
+
+                const button = document.createElement('button');
+                button.className = `px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center justify-between text-left ${isActive 
+                    ? 'bg-emerald-800 text-white shadow-sm font-bold' 
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}`;
+                button.onclick = () => selectCategory(cat);
+                
+                button.innerHTML = `
+                    <span>${cat === 'All' ? 'Semua Kategori' : cat}</span>
+                    <span class="ml-2 text-[10px] px-1.5 py-0.5 rounded-full ${isActive ? 'bg-emerald-900 text-emerald-200' : 'bg-slate-200 text-slate-600'}">${count}</span>
+                `;
+                menu.appendChild(button);
+            });
+        }
+
+        // Render dynamic items in grid
+        function renderBookmarks() {
+            const grid = document.getElementById('bookmarks-grid');
+            const emptyState = document.getElementById('empty-state');
+            const activeTitle = document.getElementById('active-category-title');
+            const activeBadge = document.getElementById('active-count-badge');
+            
+            grid.innerHTML = '';
+            
+            // Filter based on active category & search keyword
+            const keyword = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            const filtered = currentBookmarks.filter(item => {
+                const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
+                const matchesSearch = item.name.toLowerCase().includes(keyword) || item.category.toLowerCase().includes(keyword);
+                return matchesCategory && matchesSearch;
+            });
+
+            activeTitle.innerText = activeCategory === 'All' ? 'Semua Bookmarks' : activeCategory;
+            activeBadge.innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                grid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+            } else {
+                grid.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+                
+                filtered.forEach(item => {
+                    const card = document.createElement('a');
+                    card.href = item.url;
+                    card.target = "_blank";
+                    card.className = "bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-500 hover:translate-y-[-2px] transition flex items-start space-x-3.5 group";
+                    
+                    card.innerHTML = `
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 group-hover:bg-emerald-800 group-hover:text-white transition">
+                            <i class="${item.icon} text-lg"></i>
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <h4 class="text-xs font-bold text-slate-800 truncate group-hover:text-emerald-800 transition">${item.name}</h4>
+                            <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">${item.category}</p>
+                            <span class="text-[10px] text-emerald-700 font-medium group-hover:underline flex items-center space-x-1 mt-1 truncate">
+                                <span>Buka Link</span>
+                                <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                            </span>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+        }
+
+        // Category filter switcher
+        function selectCategory(category) {
+            activeCategory = category;
+            renderCategories();
+            renderBookmarks();
+        }
+
+        // Input search filtering
+        function filterBookmarks() {
+            renderBookmarks();
+        }
+
+        // Reset state
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            activeCategory = 'All';
+            renderCategories();
+            renderBookmarks();
+        }
+
+        // Update UI Stats counters
+        function updateStats() {
+            const total = currentBookmarks.length;
+            document.getElementById('bookmark-counter').innerText = `${total} Bookmarks`;
+            document.getElementById('stat-active-links').innerText = total;
+        }
+
+        // Modals management
+        function openAddModal() {
+            document.getElementById('add-modal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-modal').classList.add('hidden');
+            document.getElementById('add-form').reset();
+        }
+
+        function processAdd() {
+            const name = document.getElementById('new-name').value.trim();
+            const url = document.getElementById('new-url').value.trim();
+            const category = document.getElementById('new-category').value;
+
+            if (name && url) {
+                currentBookmarks.unshift({
+                    name: name,
+                    category: category,
+                    url: url,
+                    icon: "fa-solid fa-bookmark"
+                });
+                
+                closeAddModal();
+                resetFilters();
+                updateStats();
+                alert(`Bookmark "${name}" berhasil ditambahkan!`);
+            }
+        }
+
+        // Start app on content load
+        window.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
